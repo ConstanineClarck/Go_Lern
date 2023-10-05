@@ -1,44 +1,54 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
-	// Выводим приветствие и принцип использования калькулятора
-	fmt.Println("Добро пожаловать ")
-  fmt.Println(" ")
-	fmt.Println("Введите первое число, оператор (+, -, *, /), затем второе число:")
+	fmt.Println("Добро пожаловать в программу Calculator! Если хотите выйти - ведите 'exit' для выхода.")
 
-	// Получаем ввод пользователя
-	var num1, num2 float64
-	var operator string
-	fmt.Print("Первое число: ")
-	fmt.Scanln(&num1)
-	fmt.Print("Оператор: ")
-	fmt.Scanln(&operator)
-	fmt.Print("Второе число: ")
-	fmt.Scanln(&num2)
+	for {
+		num1 := getUserInput("Первое число:")
+		operator := getUserInput("Оператор (+, -, *, /):")
+		num2 := getUserInput("Второе число:")
 
-	// Вычисляем результат на основе оператора
-	var result float64
+		if operator == "exit" {
+			fmt.Println("До свидания!")
+			os.Exit(0)
+		}
+
+		result, err := calculateResult(num1, operator, num2)
+		if err != nil {
+			fmt.Println("Ошибка:", err)
+		} else {
+			fmt.Println("Результат:", result)
+		}
+	}
+}
+
+func getUserInput(prompt string) float64 {
+	var input float64
+	fmt.Print(prompt + " ")
+	fmt.Scanln(&input)
+	return input
+}
+
+func calculateResult(num1 float64, operator string, num2 float64) (float64, error) {
 	switch operator {
 	case "+":
-		result = num1 + num2
+		return num1 + num2, nil
 	case "-":
-		result = num1 - num2
+		return num1 - num2, nil
 	case "*":
-		result = num1 * num2
+		return num1 * num2, nil
 	case "/":
 		if num2 != 0 {
-			result = num1 / num2
+			return num1 / num2, nil
 		} else {
-			fmt.Println("Ошибка: деление на ноль!")
-			return
+			return 0, fmt.Errorf("Ошибка: деление на ноль!")
 		}
 	default:
-		fmt.Println("Ошибка: введён не допустимый оператор!")
-		return
+		return 0, fmt.Errorf("Ошибка: неверный оператор!")
 	}
-
-	// Выводим результат
-	fmt.Printf("Результат: %.2f\n", result)
 }

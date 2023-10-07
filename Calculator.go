@@ -1,54 +1,176 @@
-package main
+package main // Делаем файл исполняемым
 
 import (
-	"fmt"
-	"os"
+  "fmt" // Для работы с вводомвыводом
+  "os"  // Для работы с ОС
+
+  "github.com/eiannone/keyboard"  // Для работы с клавиатурой
+  "github.com/fatih/color"        // Для работы с разнацветными символами
 )
 
 func main() {
-	fmt.Println("Добро пожаловать в программу Calculator! Если хотите выйти - ведите 'exit' для выхода.")
 
-	for {
-		num1 := getUserInput("Первое число:")
-		operator := getUserInput("Оператор (+, -, *, /):")
-		num2 := getUserInput("Второе число:")
+  // Объявляем переменную для ввода выражения
+  var expr string
 
-		if operator == "exit" {
-			fmt.Println("До свидания!")
-			os.Exit(0)
-		}
+  // Выводим приглашение для ввода
+  fmt.Print("Введите выражение: ")
 
-		result, err := calculateResult(num1, operator, num2)
-		if err != nil {
-			fmt.Println("Ошибка:", err)
-		} else {
-			fmt.Println("Результат:", result)
-		}
-	}
+  // Считываем введенную строку  
+  fmt.Scanln(&expr)
+
+  // Цикл обработки выражений
+  for {
+    
+    // Вызываем функцию расчета
+    result, err := calc(expr)
+
+    // Проверяем наличие ошибки
+    if err != nil {
+    
+      // Выводим сообщение об ошибке  
+      fmt.Println(err)
+
+      // Просим повторить ввод
+      fmt.Print("Повторите ввод: ")
+      fmt.Scanln(&expr)
+
+      // Переход к следующей итерации
+      continue
+      
+    }
+    
+    // Выводим результат
+    color.New(color.FgMagenta).Println(result)
+
+    // Выходим из цикла
+    break
+    
+  }
+
+  // Приглашение для выхода
+  fmt.Println("Нажмите Esc для выхода")
+
+  // Инициализируем работу с клавиатурой
+  err := keyboard.Open()
+  if err != nil {
+    panic(err)
+  }
+
+  // Закроем доступ по завершении
+  defer keyboard.Close() 
+  
+  // Цикл ожидания нажатия Esc
+  for {
+  
+    // Ждем нажатия клавиши
+    char, key, err := keyboard.GetKey()
+
+    // Обработка возможной ошибки
+    if err != nil {
+      panic(err)
+    }
+
+    // Проверяем нажатие Esc
+    if key == keyboard.KeyEsc {
+    
+      // Выходим из цикла
+      break
+      
+    }
+  }
+
 }
 
-func getUserInput(prompt string) float64 {
-	var input float64
-	fmt.Print(prompt + " ")
-	fmt.Scanln(&input)
-	return input
-}
+// Функция вычисления выражения  
+func calc(input string) (int, error) {
 
-func calculateResult(num1 float64, operator string, num2 float64) (float64, error) {
-	switch operator {
-	case "+":
-		return num1 + num2, nil
-	case "-":
-		return num1 - num2, nil
-	case "*":
-		return num1 * num2, nil
-	case "/":
-		if num2 != 0 {
-			return num1 / num2, nil
-		} else {
-			return 0, fmt.Errorf("Ошибка: деление на ноль!")
-		}
-	default:
-		return 0, fmt.Errorf("Ошибка: неверный оператор!")
-	}
+  // Объявляем стек
+  var stack []int
+
+  // Переменные для операндов и оператора
+  var operand1, operand2 int
+  var operator rune
+
+  // Разбор входной строки 
+  for _, char := range input {
+
+    // Если символ - цифра
+    if char >= '0' && char <= '9' {
+
+      // Преобразуем в число
+      operand1 = operand1*10 + int(char-'0')
+
+    // Если символ - оператор
+    } else {
+    
+      switch char {
+      
+        // Обработка каждого оператора
+        case '+':
+          operator = char
+          
+          stack = append(stack, operand1)
+          operand1 = 0
+        
+        case '-':
+          operator = char
+        
+          stack = append(stack, operand1)
+          operand1 = 0
+        
+        case '*':
+          operator = char
+
+          stack = append(stack, operand1)
+          operand1 = 0
+        
+        case '/':
+          operator = char
+        
+          stack = append(stack, operand1)
+          operand1 = 0
+          
+        default:
+          // Обработка ошибки  
+          return 0, fmt.Errorf("Неизвестный оператор %c", char)
+        
+      }
+
+      // Вывод оператора  
+      color.New(color.FgGreen).Printf("%c ", char)
+
+    }
+
+  }
+  
+  // Добавляем последний операнд в стек
+  stack = append(stack, operand1)
+
+  // Вычисляем выражение
+  for i := 0; i < len(stack); i++ {
+
+    operand2 = stack[i+1]
+
+    switch operator {
+    
+      case '+':
+        stack[i] += operand2
+      
+      case '-':  
+        stack[i] -= operand2
+      
+      case '*':
+        stack[i] *= operand2
+	  
+      case '/':
+        stack[i] /= operand2
+      
+    }
+
+  }
+
+  // Возвращаем результат
+  return stack[0], nil
+
 }

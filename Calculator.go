@@ -4,8 +4,8 @@ import (
   "fmt" // Для работы с вводомвыводом
   "os"  // Для работы с ОС
 
-  "github.com/eiannone/keyboard"  // Для работы с клавиатурой
-  "github.com/fatih/color"        // Для работы с разнацветными символами
+  //"github.com/eiannone/keyboard"  // Для работы с клавиатурой
+  //"github.com/fatih/color"        // Для работы с разнацветными символами
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
     }
     
     // Выводим результат
-    color.New(color.FgMagenta).Println(result)
+    fmt.Println(result)
 
     // Выходим из цикла
     break
@@ -138,7 +138,7 @@ func calc(input string) (int, error) {
       }
 
       // Вывод оператора  
-      color.New(color.FgGreen).Printf("%c ", char)
+      fmt.Printf("%c ", char)
 
     }
 

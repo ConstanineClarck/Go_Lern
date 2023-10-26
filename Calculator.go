@@ -1,176 +1,132 @@
-package main // Делаем файл исполняемым
-
 import (
-  "fmt" // Для работы с вводомвыводом
-  "os"  // Для работы с ОС
-
-  //"github.com/eiannone/keyboard"  // Для работы с клавиатурой
-  //"github.com/fatih/color"        // Для работы с разнацветными символами
+  "fmt"
+  "strconv"
+  "strings" 
 )
 
-func main() {
+type romanNumeral struct {
+  literal string
+  value int
+}
 
-  // Объявляем переменную для ввода выражения
-  var expr string
+var allRomanNumerals = []romanNumeral{
+  {"M", 1000},
+  {"CM", 900},
+  {"D", 500},
+  {"CD", 400},
+  {"C", 100},
+  {"XC", 90},
+  {"L", 50},
+  {"XL", 40},
+  {"X", 10},
+  {"IX", 9},
+  {"V", 5},
+  {"IV", 4},
+  {"I", 1},  
+}
 
-  // Выводим приглашение для ввода
-  fmt.Print("Введите выражение: ")
-
-  // Считываем введенную строку  
-  fmt.Scanln(&expr)
-
-  // Цикл обработки выражений
-  for {
-    
-    // Вызываем функцию расчета
-    result, err := calc(expr)
-
-    // Проверяем наличие ошибки
-    if err != nil {
-    
-      // Выводим сообщение об ошибке  
-      fmt.Println(err)
-
-      // Просим повторить ввод
-      fmt.Print("Повторите ввод: ")
-      fmt.Scanln(&expr)
-
-      // Переход к следующей итерации
-      continue
-      
-    }
-    
-    // Выводим результат
-    fmt.Println(result)
-
-    // Выходим из цикла
-    break
-    
-  }
-
-  // Приглашение для выхода
-  fmt.Println("Нажмите Esc для выхода")
-
-  // Инициализируем работу с клавиатурой
-  err := keyboard.Open()
-  if err != nil {
-    panic(err)
-  }
-
-  // Закроем доступ по завершении
-  defer keyboard.Close() 
+func romToArab(input string) int {
   
-  // Цикл ожидания нажатия Esc
-  for {
-  
-    // Ждем нажатия клавиши
-    char, key, err := keyboard.GetKey()
+  result := 0
 
-    // Обработка возможной ошибки
-    if err != nil {
-      panic(err)
-    }
-
-    // Проверяем нажатие Esc
-    if key == keyboard.KeyEsc {
+  for i := 0; i < len(input); i++ {
+    symbol := input[i:i+1]
     
-      // Выходим из цикла
-      break
-      
+    for _, numeral := range allRomanNumerals {
+      if symbol == numeral.literal {
+        result += numeral.value
+        break
+      }
     }
   }
+
+  return result
+}
+
+func arabToRom(input int) string {
+
+  var romanNumerals = []struct{
+    value int
+    literal string
+  } {
+    {1000, "M"},
+    {900, "CM"},
+    {500, "D"},
+    {400, "CD"},
+    {100, "C"}, 
+    {90, "XC"},
+    {50, "L"},
+    {40, "XL"},
+    {10, "X"},
+    {9, "IX"},
+    {5, "V"},
+    {4, "IV"},
+    {1, "I"},
+  }
+
+  var result string
+
+  for _, numeral := range romanNumerals {
+    for input >= numeral.value {
+      result += numeral.literal
+      input -= numeral.value 
+    }
+  }
+
+  return result
 
 }
 
-// Функция вычисления выражения  
-func calc(input string) (int, error) {
+func calculate(input string) {
 
-  // Объявляем стек
-  var stack []int
+  parts := strings.Split(input, " ")
+  a, op, b := parts[0], parts[1], parts[2]   
 
-  // Переменные для операндов и оператора
-  var operand1, operand2 int
-  var operator rune
+  var x, y int
+  var err error
 
-  // Разбор входной строки 
-  for _, char := range input {
-
-    // Если символ - цифра
-    if char >= '0' && char <= '9' {
-
-      // Преобразуем в число
-      operand1 = operand1*10 + int(char-'0')
-
-    // Если символ - оператор
-    } else {
-    
-      switch char {
-      
-        // Обработка каждого оператора
-        case '+':
-          operator = char
-          
-          stack = append(stack, operand1)
-          operand1 = 0
-        
-        case '-':
-          operator = char
-        
-          stack = append(stack, operand1)
-          operand1 = 0
-        
-        case '*':
-          operator = char
-
-          stack = append(stack, operand1)
-          operand1 = 0
-        
-        case '/':
-          operator = char
-        
-          stack = append(stack, operand1)
-          operand1 = 0
-          
-        default:
-          // Обработка ошибки  
-          return 0, fmt.Errorf("Неизвестный оператор %c", char)
-        
-      }
-
-      // Вывод оператора  
-      fmt.Printf("%c ", char)
-
+  if strings.ContainsAny(a, "IVXLCDM") {
+    x = romToArab(a)
+  } else {  
+    x, err = strconv.Atoi(a)
+    if err != nil {
+      fmt.Println(err)
+      return
     }
-
-  }
-  
-  // Добавляем последний операнд в стек
-  stack = append(stack, operand1)
-
-  // Вычисляем выражение
-  for i := 0; i < len(stack); i++ {
-
-    operand2 = stack[i+1]
-
-    switch operator {
-    
-      case '+':
-        stack[i] += operand2
-      
-      case '-':  
-        stack[i] -= operand2
-      
-      case '*':
-        stack[i] *= operand2
-	  
-      case '/':
-        stack[i] /= operand2
-      
-    }
-
   }
 
-  // Возвращаем результат
-  return stack[0], nil
+  if strings.ContainsAny(b, "IVXLCDM") {
+    y = romToArab(b)
+  } else {
+    y, err = strconv.Atoi(b)
+    if err != nil {
+      fmt.Println(err)
+      return
+    }
+  }
+
+  var result int
+  switch op {
+    case "+":
+      result = x + y
+    case "-":
+      result = x - y 
+    case "*":
+      result = x * y
+    case "/":
+      result = x / y
+  }
+
+  romanResult := arabToRom(result)
+  fmt.Println(romanResult)  
+
+}
+
+func main() {
+
+  calculate("V + VII")
+  calculate("14 + 3") 
+  calculate("X / V")
+  calculate("15 - 4")
 
 }
